@@ -12,6 +12,7 @@ enum GameState {
     RESTART,
     START,
     PAUSE, 
+    CONTINUE,
     END
 };
 
@@ -58,7 +59,7 @@ bool hasLaunched = false;
 bool hasReset = false;
 
 // Registro do vencedor, score e variável do estado do jogo
-int const maxScore = 2;
+int const maxScore = 15;
 Player* winner = nullptr;
 GameState gameState = START;
 //Relógio
@@ -162,6 +163,7 @@ void resetBall() {
         ball.reset(player2.getBar().getX() - player2.getBar().getWidth() - ball.getRadius() - 10 , player2.getBar().getY() + player2.getBar().getHeight() / 2 );
     }
     hasReset = true;
+    hasLaunched = false;
 }
 
 // Função para movimentar as barras dos jogadores
@@ -200,7 +202,10 @@ void init() {
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     if( gameState == START ){
-        drawText("PRESS SPACE TO START ", windowWidth / 2 - 100, windowHeight / 2);
+        drawText("PRESS S TO START ", windowWidth / 2 - 100, windowHeight / 2);
+    }
+    else if(gameState == PAUSE){
+        drawText("PRESS SPACE TO CONTINUE ", windowWidth / 2 - 80, windowHeight / 2);
     }
     else if(gameState == WAITING) {
         auto now = std::chrono::steady_clock::now();
@@ -258,8 +263,14 @@ void display() {
 }
 
 void eventNormalKey(GLubyte key, GLint x, GLint y){
-    if (key == 32 && gameState == START) { // PRESS SPACE TO START
+    if ((key == 's' || key == 'S') && gameState == START) { // PRESS SPACE TO START
         gameState = PLAYING;
+    }
+    if (key == 32 ) { // PRESS SPACE TO CONTINUE
+        if(gameState == PLAYING)
+            gameState = PAUSE;
+        else if(gameState == PAUSE)
+            gameState = PLAYING;
     }
     if (key == 13 && gameState == WAITING && hasReset) { // PRESS START TO CONTINUE
         gameState = PLAYING;
@@ -285,7 +296,8 @@ void eventNormalKey(GLubyte key, GLint x, GLint y){
         else if (key == 'a' || key == 'A')
             ball.move(-barSpeed, 0);
     } 
-    else if (gameState == PLAYING) {
+    else if (gameState == PLAYING ) {
+        // PRESS P TO PAUSE
         if(key == 'w' || key == 'W')
             keyW = true;
         if(key == 's' || key == 'S')
