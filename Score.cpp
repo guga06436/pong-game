@@ -32,6 +32,6 @@ void Score::draw() const {
 
     // Renderiza o texto na posição especificada
     for (char const &c : scoreStr) {
-        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24  , c);
     }
 }

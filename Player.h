@@ -14,6 +14,7 @@ public:
     void moveBarUp(int maxY, int barSpeed);
     void moveBarDown(int minY, int barSpeed);
     void increaseScore();
+    void resetScore();
     void draw() const; // Função para desenhar o jogador usando OpenGL
 
 private:

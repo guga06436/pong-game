@@ -8,7 +8,11 @@
 
 enum GameState {
     PLAYING,
-    WAITING
+    WAITING,
+    RESTART,
+    START,
+    PAUSE, 
+    END
 };
 
 using namespace std;
@@ -53,9 +57,10 @@ bool keyDown = false; // Seta para baixo pressionada para jogador 2
 bool hasLaunched = false;
 bool hasReset = false;
 
-// Registro do vencedor e variável do estado do jogo
+// Registro do vencedor, score e variável do estado do jogo
+int const maxScore = 2;
 Player* winner = nullptr;
-GameState gameState = WAITING;
+GameState gameState = START;
 //Relógio
 chrono::steady_clock::time_point waitTimeEnd;
 
@@ -67,7 +72,7 @@ void launchRandom() {
         srand(static_cast<unsigned int>(time(nullptr)));
 
         // Gere um ângulo aleatório entre 30 e 150 graus (ajuste conforme necessário)
-        float ballAngle = rand() % 121 + 30; // Intervalo de 30 a 150 graus
+        float ballAngle = rand() % 91 + 45; // Intervalo de 45 a 135 graus
 
         // Converta o ângulo para radianos
         float ballAngleRadians = ballAngle * M_PI / 180.0;
@@ -91,6 +96,12 @@ void checkCollision() {
     float ballX = ball.getX();
     float ballY = ball.getY();
     float ballRadius = ball.getRadius();
+
+    // Verifique se o score de algum dos players atingiu o score máximo
+    if (player1.getScore().getScore() >= maxScore || player2.getScore().getScore() >= maxScore) {
+        gameState = RESTART;
+        winner = player1.getScore().getScore() >= maxScore ? &player1 : &player2;
+    }
 
     // Verifique a colisão com a parede esquerda
     if (ballX - ballRadius < 0) {
@@ -169,12 +180,12 @@ void movePlayersBars() {
     }
 }
 
-void drawText(const char* str, float x, float y) {
+void drawText(const char* str, float x, float y, void* font = GLUT_BITMAP_HELVETICA_18) {
     glPushMatrix();
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(x, windowHeight - y);
     for (const char* c = str; *c != '\0'; c++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+        glutBitmapCharacter(font, *c);
     }
     glPopMatrix();
 }
@@ -187,13 +198,24 @@ void init() {
 }
 
 void display() {
-    if(gameState == WAITING) {
-        glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
+    if( gameState == START ){
+        drawText("PRESS SPACE TO START ", windowWidth / 2 - 100, windowHeight / 2);
+    }
+    else if(gameState == WAITING) {
         auto now = std::chrono::steady_clock::now();
         int timeLeft = std::chrono::duration_cast<std::chrono::seconds>(waitTimeEnd - now).count();
-        drawText("PRESS ENTER TO RESTART ", windowWidth / 2 - 100, windowHeight / 2);
+
+        
+        if(timeLeft > 0){
+            string strTime =to_string(timeLeft);
+            const char *cStrTime = strTime.c_str();
+            drawText( cStrTime , windowWidth / 2 - 10, windowHeight / 2, GLUT_BITMAP_TIMES_ROMAN_24 );
+        }
+        
         if (timeLeft <= 0) {
-            
+            drawText("CHOOSE YOUR START ", windowWidth / 2 - 100, windowHeight / 2);
+            drawText("PRESS RETURN ", windowWidth / 2 - 70, 3 * windowHeight / 5);
             if(!hasReset){
                 resetBall();
             }
@@ -201,11 +223,17 @@ void display() {
         player1.draw();
         player2.draw();
         ball.draw();
-        glutSwapBuffers();
+        
     }
-    else{
-    glClear(GL_COLOR_BUFFER_BIT);
-
+    else if (gameState == RESTART) {
+        drawText(winner->getScore().getScore() >= maxScore ? "Player 1 wins! Press ENTER to restart" : "Player 2 wins! Press ENTER to restart", windowWidth / 2 - 150, windowHeight / 2);
+        drawText("PRESS ESC TO END", windowWidth / 2 - 100, 3 * windowHeight / 5);
+    }
+    else if (gameState == PLAYING){
+    // Define a direcao inicial aleatoria da bola
+    if(!hasLaunched){
+        launchRandom();
+    }
     // Movimente as barras dos jogadores
     movePlayersBars();
 
@@ -222,17 +250,32 @@ void display() {
     // Desenha a bola
     ball.draw();
 
-    glutSwapBuffers();
     }
+    else if (gameState == END) {
+        drawText("GAME OVER", windowWidth / 2 - 50, windowHeight / 2);
+    }
+    glutSwapBuffers();
 }
 
 void eventNormalKey(GLubyte key, GLint x, GLint y){
-    if (key == 13 && gameState == WAITING && hasReset) { // 13 is the ASCII value for 'Enter'
+    if (key == 32 && gameState == START) { // PRESS SPACE TO START
+        gameState = PLAYING;
+    }
+    if (key == 13 && gameState == WAITING && hasReset) { // PRESS START TO CONTINUE
         gameState = PLAYING;
         hasReset = false;
     }
+    if (key == 13 && gameState == RESTART) { // PRESS START TO RESET
+        gameState = PLAYING;
+        player1.resetScore();
+        player2.resetScore();
+
+    }
+    if (key == 27 && gameState == RESTART) { // PRESS START TO END
+        gameState = END;
+
+    }
     if (gameState == WAITING && winner == &player1) {
-        cout << "MOVE AMIGUINHO" << key << endl;
         if (key == 'w' || key == 'W') 
             ball.move(0, barSpeed);
         else if (key == 's' || key == 'S')
@@ -262,10 +305,6 @@ void eventNormalKeyUp(GLubyte key, GLint x, GLint y){
 }
 
 void eventSpecialKey(int key, int x, int y) {
-    if (key == 13 && gameState == WAITING && hasReset) { // 13 is the ASCII value for 'Enter'
-        gameState = PLAYING;
-        hasReset = false;
-    }
     if (gameState == WAITING && winner == &player2) {
         if (key == GLUT_KEY_UP) 
             ball.move(0, barSpeed);
@@ -302,10 +341,6 @@ void eventSpecialKeyUp(int key, int x, int y) {
 
 int main(int argc, char** argv) {
 
-    // Define a direcao inicial aleatoria da bola
-    if(!hasLaunched){
-        launchRandom();
-    }
     // Configuracoes Iniciais
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA); // Habilita o double buffering

@@ -30,6 +30,10 @@ void Player::increaseScore() {
     playerScore.increaseScore();
 }
 
+void Player::resetScore() {
+    playerScore.resetScore();
+}
+
 void Player::draw() const {
     // Desenha a barra do jogador
     playerBar.draw();
