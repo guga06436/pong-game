@@ -36,9 +36,9 @@ float const ballSpeedInc = 0.5f;
 int const barSpeed = 3;
 
 // Jogadores
-Player player1(10.0f, windowHeight / 2.0f, 10.0f, 100.0f, scoreCenterX - 20.0f, scoreCenterY); // Jogador 1 à direita
+Player player1(10.0f, windowHeight / 2.0f, 10.0f, 150.0f, scoreCenterX - 20.0f, scoreCenterY); // Jogador 1 à direita
 
-Player player2(windowWidth - 20.0f, windowHeight / 2.0f, 10.0f, 100.0f, scoreCenterX + 20.0f, scoreCenterY); // Jogador 1 à esquerda
+Player player2(windowWidth - 20.0f, windowHeight / 2.0f, 10.0f, 150.0f, scoreCenterX + 20.0f, scoreCenterY); // Jogador 1 à esquerda
 
 
 // Bola
@@ -71,9 +71,12 @@ void launchRandom() {
     if (!hasLaunched) {
         gameState = PLAYING;
         srand(static_cast<unsigned int>(time(nullptr)));
+        float ballAngle;
 
         // Gere um ângulo aleatório entre 30 e 150 graus (ajuste conforme necessário)
-        float ballAngle = rand() % 91 + 45; // Intervalo de 45 a 135 graus
+        do {
+            ballAngle = rand() % 91 + 45; // Intervalo de 45 a 135 graus
+        } while (ballAngle >= 75 && ballAngle <= 105);
 
         // Converta o ângulo para radianos
         float ballAngleRadians = ballAngle * M_PI / 180.0;
@@ -82,9 +85,20 @@ void launchRandom() {
         ballSpeedX = ballInitialSpeed * cos(ballAngleRadians);
         ballSpeedY = ballInitialSpeed * sin(ballAngleRadians);
 
-        // Escolha aleatoriamente a direção da bola (esquerda ou direita)
-        if (rand() % 2 == 0) {
-            ballSpeedX = -ballSpeedX; // Inverte a direção para a esquerda
+        // Decide aleatoriamente a direcao no eixo Y
+        if (rand() % 2) {
+            ballSpeedY = - ballSpeedY;
+        }
+
+        // Escolha direção da bola (esquerda ou direita)
+        if (winner == &player1) {
+            ballSpeedX = abs(ballSpeedX);
+        } else if (winner == &player2) {
+            ballSpeedX = -abs(ballSpeedX);
+        } else {
+            if (rand() % 2 == 0) {
+                ballSpeedX = -ballSpeedX; // Inverte a direção para a esquerda
+            }
         }
 
         // Marque que a função já foi chamada
