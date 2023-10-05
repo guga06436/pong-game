@@ -5,6 +5,13 @@
 #include "Player.h"
 #include "Ball.h"
 #include <chrono>
+#include <SFML/Audio.hpp>
+
+sf::SoundBuffer soundBar_buffer;
+sf::SoundBuffer soundScore_buffer;
+
+sf::Sound soundBar;
+sf::Sound soundScore;
 
 enum GameState {
     PLAYING,
@@ -106,6 +113,20 @@ void launchRandom() {
     }
 }
 
+void loadSounds() {
+    if (!soundScore_buffer.loadFromFile("sound_score.wav")) {
+         std::cerr << "Erro ao carregar o arquivo sound_score.wav" << std::endl;
+    }
+    if (!soundBar_buffer.loadFromFile("sound_bar.wav")) {
+        std::cerr << "Erro ao carregar o arquivo sound_bar.wav" << std::endl;
+        
+    }
+
+    soundScore.setBuffer(soundScore_buffer);
+    soundBar.setBuffer(soundBar_buffer);
+}
+
+
 // Função que verifica colisao nas extremidades da janela e com o jogador
 void checkCollision() {
     float ballX = ball.getX();
@@ -124,6 +145,7 @@ void checkCollision() {
         player2.increaseScore(); // Adiciona um ponto ao jogador 2
         gameState = WAITING;  // Muda estado do jogo para: Espera.
         waitTimeEnd = chrono::steady_clock::now() + chrono::seconds(3); // Marca tempo de término de espera
+        soundScore.play(); 
         // if (winner == &player2) {
         //     ball.move(player2.getBar().getX() - player2.getBar().getWidth() - ball.getRadius() - 10 , player2.getBar().getY() + player2.getBar().getHeight() / 2 );
         // }
@@ -135,6 +157,7 @@ void checkCollision() {
         player1.increaseScore(); // Adiciona um ponto ao jogador 1
         gameState = WAITING;  // Muda estado do jogo para: Espera.
         waitTimeEnd = chrono::steady_clock::now() + chrono::seconds(3); // Marca tempo de término de espera
+        soundScore.play();
         // if (winner == &player1) {
         //     ball.move(player1.getBar().getX() + player1.getBar().getWidth() + ball.getRadius() + 10, player1.getBar().getY() + player1.getBar().getHeight() / 2);
         // }
@@ -157,6 +180,7 @@ void checkCollision() {
         // Incrementa velocidade da bola
         ballSpeedX += ballSpeedInc;
         ballSpeedY += ballSpeedInc;
+        soundBar.play(); 
     }
 
     // Verifica colisão da bola com o player2
@@ -166,6 +190,7 @@ void checkCollision() {
         // Incrementa velocidade da bola
         ballSpeedX -= ballSpeedInc; 
         ballSpeedY -= ballSpeedInc;
+        soundBar.play(); 
     }
     
 }
@@ -211,6 +236,7 @@ void init() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, windowWidth, 0, windowHeight);
+    loadSounds();
 }
 
 void display() {

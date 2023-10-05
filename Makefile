@@ -7,8 +7,8 @@ CXX = g++
 # Opções de compilação
 CXXFLAGS = -std=c++11 -Wall
 
-# Bibliotecas OpenGL e GLUT
-LIBS = -lGL -lGLU -lglut
+# Bibliotecas OpenGL, GLUT e SFML
+LIBS = -lGL -lGLU -lglut -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 # Lista de arquivos de origem
 SOURCES = main.cpp Player.cpp Score.cpp Bar.cpp Ball.cpp
