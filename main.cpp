@@ -9,9 +9,11 @@
 
 sf::SoundBuffer soundBar_buffer;
 sf::SoundBuffer soundScore_buffer;
+sf::SoundBuffer soundTrack_buffer;
 
 sf::Sound soundBar;
 sf::Sound soundScore;
+sf::Sound soundTrack;
 
 enum GameState {
     PLAYING,
@@ -121,9 +123,15 @@ void loadSounds() {
         std::cerr << "Erro ao carregar o arquivo sound_bar.wav" << std::endl;
         
     }
+    if (!soundTrack_buffer.loadFromFile("soundtrack.wav")) {
+        std::cerr << "Erro ao carregar o arquivo soundtrack.wav" << std::endl;
+        
+    }
 
     soundScore.setBuffer(soundScore_buffer);
     soundBar.setBuffer(soundBar_buffer);
+    soundTrack.setBuffer(soundTrack_buffer);
+    soundTrack.setLoop(true);
 }
 
 
@@ -242,6 +250,7 @@ void init() {
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
     if( gameState == START ){
+        soundTrack.play();
         drawText("PRESS S TO START ", windowWidth / 2 - 100, windowHeight / 2);
     }
     else if(gameState == PAUSE){
@@ -297,6 +306,7 @@ void display() {
 
     }
     else if (gameState == END) {
+        soundTrack.stop();
         drawText("GAME OVER", windowWidth / 2 - 50, windowHeight / 2);
     }
     glutSwapBuffers();
