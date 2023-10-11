@@ -68,7 +68,7 @@ bool hasLaunched = false;
 bool hasReset = false;
 
 // Registro do vencedor, score e variável do estado do jogo
-int const maxScore = 15;
+int const maxScore = 3;
 Player* winner = nullptr;
 GameState gameState = START;
 //Relógio
@@ -217,15 +217,31 @@ void resetBall() {
 void movePlayersBars() {
     if (keyW) {
         player1.moveBarUp(windowHeight, barSpeed);
+        if (gameState == WAITING && winner == &player1) {
+            if(ball.getY() < windowHeight - (player1.getBar().getHeight()/2))
+                ball.move(0, barSpeed);
+        } 
     }
     if (keyS) {
         player1.moveBarDown(0, barSpeed);
-    }
+         if (gameState == WAITING && winner == &player1) {
+            if(ball.getY() > 0 + (player1.getBar().getHeight()/2))
+                ball.move(0, -barSpeed);
+        } 
+    } 
     if (keyUp) {
         player2.moveBarUp(windowHeight, barSpeed);
+        if (gameState == WAITING && winner == &player2) {
+            if(ball.getY() < windowHeight - (player2.getBar().getHeight()/2))
+                ball.move(0, barSpeed);
+        }
     }
     if (keyDown) {
         player2.moveBarDown(0, barSpeed);
+        if (gameState == WAITING && winner == &player2) {
+            if(ball.getY() > 0 + (player2.getBar().getHeight()/2))
+                ball.move(0, -barSpeed);
+        }
     }
 }
 
@@ -274,9 +290,11 @@ void display() {
                 resetBall();
             }
         }
+        movePlayersBars();
         player1.draw();
         player2.draw();
         ball.draw();
+        
         
     }
     else if (gameState == RESTART) {
@@ -336,17 +354,7 @@ void eventNormalKey(GLubyte key, GLint x, GLint y){
         gameState = END;
 
     }
-    if (gameState == WAITING && winner == &player1) {
-        if (key == 'w' || key == 'W') 
-            ball.move(0, barSpeed);
-        else if (key == 's' || key == 'S')
-            ball.move(0, -barSpeed);
-        else if (key == 'd' || key == 'D')
-            ball.move(barSpeed, 0);
-        else if (key == 'a' || key == 'A')
-            ball.move(-barSpeed, 0);
-    } 
-    else if (gameState == PLAYING ) {
+    else if (gameState == PLAYING || gameState == WAITING ) {
         // PRESS P TO PAUSE
         if(key == 'w' || key == 'W')
             keyW = true;
@@ -367,17 +375,7 @@ void eventNormalKeyUp(GLubyte key, GLint x, GLint y){
 }
 
 void eventSpecialKey(int key, int x, int y) {
-    if (gameState == WAITING && winner == &player2) {
-        if (key == GLUT_KEY_UP) 
-            ball.move(0, barSpeed);
-        else if (key == GLUT_KEY_DOWN)
-            ball.move(0, -barSpeed);
-        else if (key == GLUT_KEY_RIGHT)
-            ball.move(barSpeed, 0);
-        else if (key == GLUT_KEY_LEFT)
-            ball.move(-barSpeed, 0);
-    } 
-    else if (gameState == PLAYING) {
+    if (gameState == PLAYING || gameState == WAITING ) {
         if (key == GLUT_KEY_UP) {
             keyUp = true;
         }
@@ -390,7 +388,7 @@ void eventSpecialKey(int key, int x, int y) {
 }
 
 void eventSpecialKeyUp(int key, int x, int y) {
-    if (key == GLUT_KEY_UP) {
+    if (key == GLUT_KEY_UP ) {
         keyUp = false;
     }
     
